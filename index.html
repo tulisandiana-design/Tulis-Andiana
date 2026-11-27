@@ -1,1 +1,622 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asesmen Sejarah SMA — Benar / Salah</title>
+  <style>
+    :root {
+      --primary: #1e3a8a;
+      --primary-light: #eff6ff;
+      --accent: #b45309;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --danger: #b91c1c;
+      --danger-bg: #fee2e2;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --bg: #f8fafc;
+    }
 
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e3a8a, #1e40af);
+      color: #fff;
+      padding: 24px 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    }
+    header h1 { margin: 0 0 6px; font-size: 1.6rem; }
+    header p { margin: 0; font-size: 0.95rem; opacity: 0.9; }
+
+    .container {
+      max-width: 860px;
+      margin: 24px auto 60px;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .student-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    label.field-label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+
+    .progress-bar-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .progress-track {
+      flex: 1;
+      height: 10px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--primary);
+      transition: width 0.25s ease;
+    }
+    .progress-text {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--primary);
+      white-space: nowrap;
+    }
+
+    .q-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .q-num {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.95rem;
+    }
+    .q-topic {
+      font-size: 0.78rem;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    .q-text {
+      font-size: 1.02rem;
+      margin: 8px 0 14px;
+    }
+
+    .options {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .opt-btn {
+      flex: 1;
+      min-width: 140px;
+      padding: 11px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .opt-btn:hover:not(:disabled) {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .opt-btn.selected {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: #fff;
+    }
+    .opt-btn:disabled { cursor: default; }
+
+    .explanation {
+      display: none;
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 0.92rem;
+    }
+    .explanation.correct {
+      display: block;
+      background: var(--success-bg);
+      border-left: 4px solid var(--success);
+      color: #14532d;
+    }
+    .explanation.incorrect {
+      display: block;
+      background: var(--danger-bg);
+      border-left: 4px solid var(--danger);
+      color: #7f1d1d;
+    }
+
+    .submit-area {
+      text-align: center;
+      margin-top: 28px;
+    }
+    .btn-submit {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 14px 32px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 3px 8px rgba(30,58,138,0.25);
+    }
+    .btn-submit:hover:not(:disabled) { background: #172554; }
+    .btn-submit:disabled { background: #9ca3af; cursor: not-allowed; }
+
+    #result-box {
+      display: none;
+      border: 2px solid var(--primary);
+      background: #fff;
+    }
+    .score-banner {
+      text-align: center;
+      padding: 16px;
+      background: var(--primary-light);
+      border-radius: 8px;
+      margin-bottom: 14px;
+    }
+    .score-big {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 4px 0;
+    }
+    .status-email {
+      font-size: 0.92rem;
+      padding: 10px 14px;
+      border-radius: 6px;
+      background: #fef3c7;
+      color: #92400e;
+      margin-top: 10px;
+      text-align: center;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Asesmen Interaktif Mata Pelajaran Sejarah SMA</h1>
+  <p>Tipe Soal: Benar / Salah (30 Butir Soal) • Kurikulum Merdeka</p>
+</header>
+
+<div class="progress-bar-wrap">
+  <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="progress-text" id="progress-text">Terjawab: 0 / 30</div>
+</div>
+
+<div class="container">
+  <!-- Identitas Siswa -->
+  <div class="card">
+    <strong>Identitas Peserta Didik</strong>
+    <div class="student-grid">
+      <div>
+        <label class="field-label" for="nama">Nama Lengkap *</label>
+        <input type="text" id="nama" placeholder="Contoh: Ahmad Fauzan" required />
+      </div>
+      <div>
+        <label class="field-label" for="kelas">Kelas *</label>
+        <input type="text" id="kelas" placeholder="Contoh: XI-F2" required />
+      </div>
+      <div>
+        <label class="field-label" for="absen">Nomor Presensi *</label>
+        <input type="text" id="absen" placeholder="Contoh: 07" required />
+      </div>
+    </div>
+  </div>
+
+  <!-- Ringkasan Skor (Muncul setelah submit) -->
+  <div class="card" id="result-box">
+    <div class="score-banner">
+      <div>Nilai Akhir Asesmen</div>
+      <div class="score-big" id="score-display">0</div>
+      <div id="score-detail">Benar: 0 | Salah: 0 dari 30 soal</div>
+    </div>
+    <div class="status-email" id="email-status">Mengirim hasil ke email guru...</div>
+  </div>
+
+  <!-- Daftar Soal -->
+  <div id="quiz-container"></div>
+
+  <div class="submit-area">
+    <button class="btn-submit" id="submit-btn" onclick="submitQuiz()">Kirim Jawaban & Lihat Pembahasan</button>
+  </div>
+</div>
+
+<script>
+  // =========================================================================
+  // KONFIGURASI EMAIL GURU (Ganti dengan Endpoint Formspree Anda)
+  // =========================================================================
+  const FORMSPREE_ENDPOINT = "GANTI_DENGAN_ENDPOINT_FORMSPREE_ANDA";
+
+  // =========================================================================
+  // BANK 30 SOAL SEJARAH SMA (BENAR / SALAH + PEMBAHASAN)
+  // =========================================================================
+  const questions = [
+    {
+      topic: "Konsep Berpikir Sejarah",
+      statement: "Cara berpikir diakronis dalam ilmu sejarah mengutamakan keluasan ruang dalam satu waktu tertentu dibandingkan memanjangnya proses peristiwa dalam dimensi waktu.",
+      answer: false,
+      explanation: "Salah. Pernyataan tersebut menggambarkan konsep sinkronis (melebar dalam ruang, menyempit dalam waktu). Berpikir diakronis bersifat memanjang dalam waktu dan mementingkan proses kronologis."
+    },
+    {
+      topic: "Sumber & Penelitian Sejarah",
+      statement: "Dalam tahapan metode sejarah, kritik intern dilakukan untuk menguji keaslian fisik dokumen seperti jenis kertas, tinta, dan gaya tulisan pada masanya.",
+      answer: false,
+      explanation: "Salah. Pengujian keaslian fisik dokumen merupakan bagian dari kritik ekstern (autentisitas). Kritik intern bertujuan menguji kredibilitas atau kebenaran isi informasi di dalam sumber sejarah."
+    },
+    {
+      topic: "Historiografi Indonesia",
+      statement: "Historiografi tradisional pada masa kerajaan-kerajaan Nusantara umumnya bersifat istanasentris dan mengandung unsur legitimasi magis-religius bagi penguasa.",
+      answer: true,
+      explanation: "Benar. Karya seperti babad, hikayat, dan carita ditulis oleh pujangga keraton untuk mengagungkan raja serta memperkuat legitimasi kekuasaan dinasti."
+    },
+    {
+      topic: "Masa Praaksara",
+      statement: "Perubahan pola hidup manusia purba dari masa berburu dan mengumpulkan makanan menuju masa bercocok tanam dikenal sebagai Revolusi Neolitikum karena memicu kehidupan menetap (sedenter).",
+      answer: true,
+      explanation: "Benar. Revolusi Neolitikum menandai peralihan dari food gathering ke food producing sehingga manusia mulai tinggal menetap dan membentuk perkampungan awal."
+    },
+    {
+      topic: "Jalur Rempah & Maritim",
+      statement: "Jalur Rempah Nusantara pada masa kuno hanya berfungsi sebagai jalur distribusi komoditas ekonomi tanpa memengaruhi pertukaran bahasa, agama, dan teknologi antarbangsa.",
+      answer: false,
+      explanation: "Salah. Jalur Rempah merupakan ruang perjumpaan budaya yang mendorong akulturasi bahasa, masuknya agama Hindu-Buddha serta Islam, dan transfer teknologi pelayaran."
+    },
+    {
+      topic: "Kerajaan Hindu-Buddha",
+      statement: "Prasasti Yupa dari Kerajaan Kutai menunjukkan bahwa pengaruh budaya India langsung menghapus seluruh tradisi lokal masyarakat Kalimantan Timur.",
+      answer: false,
+      explanation: "Salah. Prasasti Yupa memperlihatkan akulturasi: penggunaan bahasa Sanskerta dan aksara Pallawa berpadu dengan tradisi lokal seperti pendirian tugu batu (menhir) sebagai yupa."
+    },
+    {
+      topic: "Kerajaan Maritim Sriwijaya",
+      statement: "Letak geografis Sriwijaya di jalur Selat Malaka menjadikannya pusat perdagangan maritim sekaligus pusat pembelajaran agama Buddha bertaraf internasional.",
+      answer: true,
+      explanation: "Benar. Catatan pendeta Tiongkok I-Tsing membuktikan bahwa Sriwijaya menguasai jalur pelayaran Selat Malaka dan menjadi pusat studi tata bahasa Sanskerta serta ajaran Buddha."
+    },
+    {
+      topic: "Kerajaan Majapahit",
+      statement: "Sumpah Palapa yang diucapkan Mahapatih Gajah Mada bertujuan menyatukan wilayah Nusantara di bawah pengaruh politik Majapahit.",
+      answer: true,
+      explanation: "Benar. Sebagaimana tercatat dalam Kitab Pararaton, Sumpah Palapa merupakan tekad Gajah Mada untuk menyatukan wilayah-wilayah Nusantara di bawah panji Majapahit."
+    },
+    {
+      topic: "Islamisasi Nusantara",
+      statement: "Penyebaran Islam di Nusantara berlangsung efektif salah satunya karena menggunakan saluran kesenian dan akulturasi budaya lokal, seperti pertunjukan wayang oleh Sunan Kalijaga.",
+      answer: true,
+      explanation: "Benar. Pendekatan kultural melalui wayang, gamelan, seni ukir, dan arsitektur masjid beratap tumpang membuat Islam mudah diterima tanpa gejolak sosial."
+    },
+    {
+      topic: "Kesultanan Maritim",
+      statement: "Kesultanan Aceh Darussalam menjalin hubungan diplomatik dan militer dengan Kesultanan Turki Utsmani pada abad ke-16 untuk menghadapi dominasi Portugis di Selat Malaka.",
+      answer: true,
+      explanation: "Benar. Pada masa Sultan Alauddin Riayat Syah al-Kahar, Aceh mengirim utusan ke Istanbul dan memperoleh bantuan meriam serta ahli militer dari Turki Utsmani."
+    },
+    {
+      topic: "Kolonialisme & VOC",
+      statement: "Hak Oktroi yang diberikan pemerintah Belanda kepada VOC hanya mencakup izin berdagang rempah-rempah tanpa kewenangan memiliki tentara maupun mencetak mata uang sendiri.",
+      answer: false,
+      explanation: "Salah. Hak Oktroi menjadikan VOC layaknya negara di dalam negara karena berhak memonopoli dagang, memiliki angkatan perang, mencetak uang, dan membuat perjanjian dengan raja lokal."
+    },
+    {
+      topic: "Kebijakan Kolonial Abad ke-19",
+      statement: "Sistem Tanam Paksa (Cultuurstelsel) yang dicetuskan Johannes van den Bosch berhasil menyelamatkan keuangan Belanda, tetapi menimbulkan penderitaan dan kelaparan di berbagai daerah di Jawa.",
+      answer: true,
+      explanation: "Benar. Penyelewengan aturan Tanam Paksa menyita lahan dan tenaga petani secara berlebihan hingga memicu bencana kelaparan di Cirebon, Demak, dan Grobogan."
+    },
+    {
+      topic: "Perlawanan Daerah Sebelum 1908",
+      statement: "Perlawanan rakyat Indonesia terhadap kolonialisme sebelum tahun 1908 umumnya bersifat kedaerahan, bergantung pada tokoh kharismatik, dan belum terorganisasi secara modern.",
+      answer: true,
+      explanation: "Benar. Perlawanan seperti Perang Diponegoro, Perang Padri, dan Perang Aceh masih berfokus pada wilayah masing-masing dan melemah ketika pemimpin utamanya tertangkap atau gugur."
+    },
+    {
+      topic: "Politik Etis",
+      statement: "Program edukasi dalam Politik Etis awalnya dirancang pemerintah kolonial untuk mencetak tenaga administrasi rendahan yang murah, namun justru melahirkan golongan terpelajar penggerak nasionalisme.",
+      answer: true,
+      explanation: "Benar. Golongan terpelajar (elite modern) lulusan sekolah kolonial memanfaatkan ilmu pengetahuan untuk membangun kesadaran kebangsaan dan mendirikan organisasi pergerakan."
+    },
+    {
+      topic: "Pergerakan Nasional",
+      statement: "Indische Partij merupakan organisasi pergerakan nasional pertama yang secara terang-terangan menuntut kemerdekaan Hindia Belanda melalui konsep nasionalisme inklusif (Indiers).",
+      answer: true,
+      explanation: "Benar. Didirikan oleh Tiga Serangkai (Douwes Dekker, Tjipto Mangoenkoesoemo, Suwardi Suryaningrat), Indische Partij secara tegas menyuarakan kemerdekaan Hindia bagi seluruh penduduknya."
+    },
+    {
+      topic: "Sumpah Pemuda 1928",
+      statement: "Kongres Pemuda II tahun 1928 menegaskan bahasa Melayu sebagai bahasa persatuan yang kemudian dinamai bahasa Indonesia untuk menjembatani keragaman suku bangsa.",
+      answer: true,
+      explanation: "Benar. Bahasa Melayu dipilih karena telah lama menjadi lingua franca (bahasa perhubungan) di kepulauan Nusantara dan bersifat egaliter."
+    },
+    {
+      topic: "Masa Pendudukan Jepang",
+      statement: "Pembentukan organisasi semi-militer seperti Seinendan, Keibodan, dan PETA oleh Jepang murni ditujukan untuk mempersiapkan kemerdekaan Indonesia sejak tahun 1942.",
+      answer: false,
+      explanation: "Salah. Tujuan utama Jepang membentuk organisasi tersebut adalah memobilisasi tenaga pemuda Indonesia sebagai cadangan militer untuk membantu Jepang dalam Perang Asia Timur Raya."
+    },
+    {
+      topic: "Peristiwa Rengasdengklok",
+      statement: "Peristiwa Rengasdengklok terjadi karena perbedaan pendapat antara golongan tua dan golongan muda mengenai waktu serta cara pelaksanaan proklamasi kemerdekaan Indonesia.",
+      answer: true,
+      explanation: "Benar. Golongan muda mendesak proklamasi segera dilakukan tanpa campur tangan PPKI bentukan Jepang, sedangkan golongan tua menghendaki perhitungan matang melalui sidang PPKI."
+    },
+    {
+      topic: "Proklamasi Kemerdekaan",
+      statement: "Teks Proklamasi Kemerdekaan Indonesia dirumuskan di rumah Laksamana Tadashi Maeda dan diketik ulang oleh Sayuti Melik dengan beberapa perubahan redaksional.",
+      answer: true,
+      explanation: "Benar. Sayuti Melik mengetik naskah tulisan tangan Soekarno dengan tiga perubahan: 'tempoh' menjadi 'tempo', 'wakil-wakil bangsa Indonesia' menjadi 'Atas nama bangsa Indonesia', dan penulisan tanggal."
+    },
+    {
+      topic: "Pembentukan Pemerintahan Awal",
+      statement: "Pada sidang PPKI tanggal 18 Agustus 1945, selain mengesahkan UUD 1945 serta memilih Presiden dan Wakil Presiden, dibentuk pula 12 kementerian negara.",
+      answer: false,
+      explanation: "Salah. Pembentukan 12 kementerian dan pembagian 8 provinsi diputuskan pada sidang PPKI kedua tanggal 19 Agustus 1945, bukan 18 Agustus 1945."
+    },
+    {
+      topic: "Perjuangan Mempertahankan Kemerdekaan",
+      statement: "Perundingan Linggarjati tahun 1946 menghasilkan pengakuan de facto Belanda atas wilayah Republik Indonesia yang meliputi Jawa, Sumatra, dan Madura.",
+      answer: true,
+      explanation: "Benar. Meskipun wilayah RI menyempit secara de facto, pengakuan dalam Perundingan Linggarjati menjadi modal diplomatik penting di mata dunia internasional."
+    },
+    {
+      topic: "Serangan Umum 1 Maret 1949",
+      statement: "Serangan Umum 1 Maret 1949 di Yogyakarta bertujuan membuktikan kepada dunia internasional bahwa TNI dan Republik Indonesia masih eksis meskipun ibu kota telah diduduki Belanda.",
+      answer: true,
+      explanation: "Benar. Serangan selama enam jam tersebut mematahkan propaganda Belanda di PBB yang mengeklaim bahwa RI dan TNI sudah hancur akibat Agresi Militer II."
+    },
+    {
+      topic: "Demokrasi Liberal (1950–1959)",
+      statement: "Salah satu penyebab sering jatuhnya kabinet pada masa Demokrasi Liberal adalah kuatnya persaingan antarpartai politik di parlemen yang mengutamakan kepentingan golongan.",
+      answer: true,
+      explanation: "Benar. Sistem multipartai dengan koalisi yang rapuh membuat mosi tidak percaya mudah diajukan sehingga usia kabinet rata-rata hanya bertahan sekitar satu tahun."
+    },
+    {
+      topic: "Konferensi Asia Afrika 1955",
+      statement: "Konferensi Asia Afrika (KAA) di Bandung tahun 1955 melahirkan Dasasila Bandung yang menjadi tonggak lahirnya Gerakan Non-Blok di tengah Perang Dingin.",
+      answer: true,
+      explanation: "Benar. Dasasila Bandung menegaskan penghormatan kedaulatan bangsa, anti-kolonialisme, dan perdamaian dunia yang menginspirasi berdirinya Gerakan Non-Blok pada 1961."
+    },
+    {
+      topic: "Demokrasi Terpimpin",
+      statement: "Dekrit Presiden 5 Juli 1959 dikeluarkan oleh Presiden Soekarno karena Badan Konstituante gagal menyusun undang-undang dasar baru setelah bersidang berlarut-larut.",
+      answer: true,
+      explanation: "Benar. Kegagalan Konstituante mencapai kuorum keputusan dan situasi politik yang memanas mendorong keluarnya Dekrit Presiden untuk kembali ke UUD 1945."
+    },
+    {
+      topic: "Masa Orde Baru",
+      statement: "Kebijakan Dwi Fungsi ABRI pada masa Orde Baru menempatkan militer hanya pada peran pertahanan dan keamanan negara tanpa keterlibatan di bidang sosial-politik.",
+      answer: false,
+      explanation: "Salah. Dwi Fungsi ABRI justru memberi peran ganda kepada militer, yakni sebagai kekuatan pertahanan keamanan sekaligus kekuatan sosial-politik (menduduki jabatan sipil dan parlemen)."
+    },
+    {
+      topic: "Reformasi 1998",
+      statement: "Krisis moneter Asia tahun 1997–1998 yang disertai praktik KKN dan krisis kepercayaan publik menjadi faktor pendorong utama terjadinya gerakan Reformasi Mei 1998.",
+      answer: true,
+      explanation: "Benar. Anjloknya nilai tukar rupiah, melambungnya harga kebutuhan pokok, serta tuntutan demokratisasi memicu gelombang aksi mahasiswa hingga berujung pada mundurnya Presiden Soeharto."
+    },
+    {
+      topic: "Perang Dingin & Dunia",
+      statement: "Perang Dingin antara Blok Barat (Amerika Serikat) dan Blok Timur (Uni Soviet) berlangsung melalui perlombaan senjata, perang proksi, dan persaingan ideologi tanpa perang terbuka langsung antarnegara adidaya.",
+      answer: true,
+      explanation: "Benar. Disebut 'Perang Dingin' karena AS dan Uni Soviet tidak terlibat perang militer langsung secara terbuka, melainkan bersaing lewat spionase, teknologi antariksa, dan konflik proksi."
+    },
+    {
+      topic: "Sejarah Kontemporer Dunia",
+      statement: "Runtuhnya Tembok Berlin pada November 1989 menjadi simbol berakhirnya perpecahan Jerman dan menandai melemahnya pengaruh blok komunis di Eropa Timur.",
+      answer: true,
+      explanation: "Benar. Runtuhnya Tembok Berlin membuka jalan reunifikasi Jerman tahun 1990 serta mempercepat runtuhnya rezim-rezim komunis di Eropa Timur dan bubarnya Uni Soviet."
+    },
+    {
+      topic: "Peran Indonesia di Dunia",
+      statement: "Pengiriman Kontingen Garuda oleh Indonesia ke berbagai wilayah konflik di bawah bendera PBB merupakan wujud pelaksanaan politik luar negeri bebas aktif.",
+      answer: true,
+      explanation: "Benar. Sejak pengiriman Kontingen Garuda I ke Mesir tahun 1957, Indonesia konsisten berkontribusi dalam misi pemeliharaan perdamaian dunia sesuai amanat pembukaan UUD 1945."
+    }
+  ];
+
+  // =========================================================================
+  // RENDER SOAL & LOGIKA INTERAKTIF
+  // =========================================================================
+  const userAnswers = new Array(questions.length).fill(null);
+  const quizContainer = document.getElementById("quiz-container");
+
+  function renderQuestions() {
+    quizContainer.innerHTML = "";
+    questions.forEach((q, idx) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.id = `q-card-${idx}`;
+      card.innerHTML = `
+        <div class="q-header">
+          <span class="q-num">Soal ${idx + 1} dari ${questions.length}</span>
+          <span class="q-topic">${q.topic}</span>
+        </div>
+        <div class="q-text">${q.statement}</div>
+        <div class="options">
+          <button type="button" class="opt-btn" id="btn-${idx}-true" onclick="selectAnswer(${idx}, true)">BENAR</button>
+          <button type="button" class="opt-btn" id="btn-${idx}-false" onclick="selectAnswer(${idx}, false)">SALAH</button>
+        </div>
+        <div class="explanation" id="exp-${idx}"></div>
+      `;
+      quizContainer.appendChild(card);
+    });
+  }
+
+  function selectAnswer(index, value) {
+    userAnswers[index] = value;
+
+    const btnTrue = document.getElementById(`btn-${index}-true`);
+    const btnFalse = document.getElementById(`btn-${index}-false`);
+
+    btnTrue.classList.toggle("selected", value === true);
+    btnFalse.classList.toggle("selected", value === false);
+
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const answeredCount = userAnswers.filter(a => a !== null).length;
+    const pct = Math.round((answeredCount / questions.length) * 100);
+    document.getElementById("progress-fill").style.width = `${pct}%`;
+    document.getElementById("progress-text").textContent = `Terjawab: ${answeredCount} / ${questions.length}`;
+  }
+
+  async function submitQuiz() {
+    const nama = document.getElementById("nama").value.trim();
+    const kelas = document.getElementById("kelas").value.trim();
+    const absen = document.getElementById("absen").value.trim();
+
+    if (!nama || !kelas || !absen) {
+      alert("Harap lengkapi Nama Lengkap, Kelas, dan Nomor Presensi terlebih dahulu.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
+    const unanswered = userAnswers.findIndex(a => a === null);
+    if (unanswered !== -1) {
+      alert(`Soal nomor ${unanswered + 1} belum dijawab. Pastikan seluruh 30 soal telah dijawab sebelum mengirim.`);
+      document.getElementById(`q-card-${unanswered}`).scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
+    // Hitung skor & tampilkan pembahasan
+    let correctCount = 0;
+    const detailLines = [];
+
+    questions.forEach((q, idx) => {
+      const userAns = userAnswers[idx];
+      const isCorrect = userAns === q.answer;
+      if (isCorrect) correctCount++;
+
+      // Kunci tombol jawaban
+      document.getElementById(`btn-${idx}-true`).disabled = true;
+      document.getElementById(`btn-${idx}-false`).disabled = true;
+
+      // Tampilkan pembahasan
+      const expEl = document.getElementById(`exp-${idx}`);
+      const kunciTeks = q.answer ? "BENAR" : "SALAH";
+      const jawabanSiswaTeks = userAns ? "BENAR" : "SALAH";
+
+      expEl.className = `explanation ${isCorrect ? "correct" : "incorrect"}`;
+      expEl.innerHTML = `
+        <strong>${isCorrect ? "✓ Jawaban Anda Tepat" : "✗ Jawaban Kurang Tepat"}</strong>
+        (Jawaban Anda: <b>${jawabanSiswaTeks}</b> | Kunci: <b>${kunciTeks}</b>)<br/>
+        <span>${q.explanation}</span>
+      `;
+
+      detailLines.push(
+        `No.${idx + 1} [${isCorrect ? "BENAR" : "SALAH"}] - Siswa: ${jawabanSiswaTeks} | Kunci: ${kunciTeks}`
+      );
+    });
+
+    const finalScore = Math.round((correctCount / questions.length) * 100);
+    const wrongCount = questions.length - correctCount;
+
+    document.getElementById("submit-btn").disabled = true;
+    document.getElementById("result-box").style.display = "block";
+    document.getElementById("score-display").textContent = finalScore;
+    document.getElementById("score-detail").textContent = `Benar: ${correctCount} | Salah: ${wrongCount} dari ${questions.length} soal`;
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Kirim hasil ke email guru melalui Formspree
+    const statusEl = document.getElementById("email-status");
+    if (!FORMSPREE_ENDPOINT || FORMSPREE_ENDPOINT.includes("GANTI_DENGAN")) {
+      statusEl.textContent = "Skor tampil di layar. (Catatan: Endpoint email guru belum diatur pada kode).";
+      return;
+    }
+
+    try {
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({
+          _subject: `Hasil Asesmen Sejarah - ${nama} (${kelas}) - Nilai: ${finalScore}`,
+          Nama_Siswa: nama,
+          Kelas: kelas,
+          Nomor_Presensi: absen,
+          Nilai_Akhir: finalScore,
+          Jumlah_Benar: `${correctCount} / ${questions.length}`,
+          Waktu_Pengiriman: new Date().toLocaleString("id-ID"),
+          Rincian_Jawaban: detailLines.join("\n")
+        })
+      });
+
+      if (response.ok) {
+        statusEl.style.background = "#dcfce7";
+        statusEl.style.color = "#14532d";
+        statusEl.textContent = "✓ Hasil asesmen dan rincian jawaban berhasil dikirim ke email guru.";
+      } else {
+        throw new Error("Gagal mengirim ke server Formspree");
+      }
+    } catch (err) {
+      statusEl.style.background = "#fee2e2";
+      statusEl.style.color = "#7f1d1d";
+      statusEl.textContent = "⚠ Nilai sudah tercatat di layar, namun pengiriman ke email gagal. Silakan tangkap layar (screenshot) hasil ini dan kirim ke guru.";
+    }
+  }
+
+  renderQuestions();
+</script>
+</body>
+</html>
